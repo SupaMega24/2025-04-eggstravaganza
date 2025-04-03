@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.23;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import "../src/EggstravaganzaNFT.sol";
 import "../src/EggVault.sol";
 import "../src/EggHuntGame.sol";
@@ -15,7 +15,6 @@ contract EggGameTest is Test {
     address bob;
 
     error OwnableUnauthorizedAccount(address account);
-
 
     function setUp() public {
         owner = address(this); // The test contract is the deployer/owner.
@@ -43,7 +42,9 @@ contract EggGameTest is Test {
 
         // Only the owner should be able to set the game contract.
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, alice));
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, alice)
+        );
         nft.setGameContract(alice);
 
         // Setting the game contract to the zero address should revert.
@@ -110,7 +111,9 @@ contract EggGameTest is Test {
     function testGameStartAndEnd() public {
         // Only the owner can start the game.
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, alice));
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, alice)
+        );
         game.startGame(100);
 
         // Duration must be at least the minimum (60 seconds).
@@ -145,7 +148,9 @@ contract EggGameTest is Test {
     function testSetEggFindThreshold() public {
         // Only the owner should be able to set the egg find threshold.
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, alice));
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, alice)
+        );
         game.setEggFindThreshold(50);
 
         // Setting a threshold above 100 should revert.
