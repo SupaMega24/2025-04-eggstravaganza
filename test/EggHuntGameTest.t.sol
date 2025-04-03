@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.23;
 
+// suggestion: Improve naming of imports
 import {Test} from "forge-std/Test.sol";
 import "../src/EggstravaganzaNFT.sol";
 import "../src/EggVault.sol";
