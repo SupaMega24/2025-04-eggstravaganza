@@ -6,15 +6,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract EggstravaganzaNFT is ERC721, Ownable {
     /// @notice The only allowed contract to mint eggs (e.g. the EggHuntGame)
+    // my qs: Ok, but what happens if another contract is set as the game contract?
+    // -- will it be able to mint eggs as well?
     address public gameContract;
 
     /// @notice Tracks the total number of minted eggs.
     uint256 public totalSupply;
 
     /// @notice Constructor initializes the ERC721 token with a name and symbol.
-    constructor(string memory _name, string memory _symbol)
-        ERC721(_name, _symbol) Ownable(msg.sender)
-    {}
+    constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) Ownable(msg.sender) {}
 
     /// @notice Only the owner can set the game contract allowed to mint eggs.
     function setGameContract(address _gameContract) external onlyOwner {
