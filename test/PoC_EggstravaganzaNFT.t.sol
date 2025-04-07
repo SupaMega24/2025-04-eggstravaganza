@@ -5,7 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import "../src/EggstravaganzaNFT.sol";
 
 /*//////////////////////////////////////////////////////////////
-                        MALICIOUS CONTRACT
+            PoC: MALICIOUS CONTRACT CAN MINT EGGS
 //////////////////////////////////////////////////////////////*/
 
 contract MaliciousGameContract {
@@ -22,7 +22,7 @@ contract MaliciousGameContract {
 }
 
 /*//////////////////////////////////////////////////////////////
-                   PoC: MALICIOUS CONTRACT CAN MINT EGGS
+                PoC: Test MALICIOUS CONTRACT CAN MINT EGGS
 //////////////////////////////////////////////////////////////*/
 
 contract EggstravaganzaNFTTest is Test {
